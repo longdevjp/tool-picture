@@ -1,4 +1,8 @@
 import os
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
+from tkinter import filedialog
+import os
 import threading
 import requests
 from tkinter import *
@@ -236,59 +240,108 @@ def browse_folder():
         output_folder_entry.insert(0, folder)
 
 
-# ====================== GIAO DIỆN GUI ======================
-root = Tk()
-root.title("📥 Tải ảnh + video (Cắt video theo giây - Bản tối ưu)")
-root.geometry("520x520")
+# ======================== CỬA SỔ CHÍNH ========================
+root = ttk.Window(themename="cyborg")  # bạn có thể thử: flatly, minty, darkly...
+root.title("📥 Download Tool - Image & Video Splitter")
+root.geometry("600x690")
+# root.resizable(False, False)
 
-Label(root, text="🖼️ Từ khóa tìm ảnh:").pack(pady=5)
-keyword_entry = Entry(root, width=50)
-keyword_entry.pack()
-
-Label(root, text="🎞️ Link video (TikTok, Facebook...):").pack(pady=5)
-video_entry = Entry(root, width=50)
-video_entry.pack()
-
-Label(root, text="📷 Số lượng ảnh:").pack(pady=5)
-num_images_spinbox = Spinbox(root, from_=1, to=100, width=5)
-num_images_spinbox.pack()
-
-Label(root, text="⏱️ Cắt video thành đoạn dài (giây):").pack(pady=5)
-segment_duration_spinbox = Spinbox(root, from_=1, to=60, width=5)
-segment_duration_spinbox.insert(0, "6")
-segment_duration_spinbox.pack()
-
-Label(root, text="📂 Thư mục lưu:").pack(pady=5)
-output_frame = Frame(root)
-output_frame.pack()
-output_folder_entry = Entry(output_frame, width=35)
-output_folder_entry.pack(side="left", padx=5)
-Button(output_frame, text="Chọn", command=browse_folder).pack(side="left")
-
-# Chọn chất lượng ảnh
-quality_all_var = IntVar(value=1)
-quality_hd_var = IntVar()
-quality_fullhd_var = IntVar()
-
-Label(root, text="🔍 Chọn chất lượng ảnh:").pack(pady=5)
-Checkbutton(root, text="Mọi loại ảnh", variable=quality_all_var).pack(anchor="w", padx=30)
-Checkbutton(root, text="Chất lượng nét (≥ 1280px)", variable=quality_hd_var).pack(anchor="w", padx=30)
-Checkbutton(root, text="Siêu nét (≥ 1920px)", variable=quality_fullhd_var).pack(anchor="w", padx=30)
-
-Button(root, text="🚀 Bắt đầu tải", command=start_download, bg="green", fg="white").pack(pady=10)
-
-progress_var = DoubleVar()
-progress_bar = Progressbar(root, variable=progress_var, maximum=100, length=420)
-progress_bar.pack(pady=5)
-
-result_label = Label(root, text="", fg="black", wraplength=480, justify="center")
-result_label.pack(pady=5)
-
-note_label = Label(
+# ======================== TIÊU ĐỀ ========================
+title_label = ttk.Label(
     root,
-    text="📝 Video sẽ được cắt chính xác từng giây nhờ FFmpeg (libx264 + aac)",
-    fg="gray", font=("Arial", 8)
+    text="📥 Image Downloader + Video Splitter",
+    font=("Segoe UI", 14, "bold")
 )
-note_label.pack(pady=2)
+title_label.pack(pady=12)
 
+frame_main = ttk.Frame(root, padding=15)
+frame_main.pack(fill="both", expand=True)
+
+# ======================== INPUT FIELD ========================
+ttk.Label(frame_main, text="🖼️ Image Keyword:", font=("Segoe UI", 10, "bold")).pack(anchor="w")
+keyword_entry = ttk.Entry(frame_main, width=50)
+keyword_entry.pack(pady=5)
+
+ttk.Label(frame_main, text="🎞️ Video Link (TikTok, FB...):", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(10,0))
+video_entry = ttk.Entry(frame_main, width=50)
+video_entry.pack(pady=5)
+
+ttk.Label(frame_main, text="📷 Number of Images:", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(10,0))
+num_images_spinbox = ttk.Spinbox(frame_main, from_=1, to=500, width=10)
+num_images_spinbox.insert(0, "50")
+num_images_spinbox.pack(pady=5)
+
+ttk.Label(frame_main, text="⏱ Video Split Duration (seconds):", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(10,0))
+segment_duration_spinbox = ttk.Spinbox(frame_main, from_=1, to=60, width=10)
+segment_duration_spinbox.insert(0, "6")
+segment_duration_spinbox.pack(pady=5)
+
+# ======================== CHỌN FOLDER ========================
+ttk.Label(frame_main, text="📂 Save Folder:", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(10,0))
+folder_frame = ttk.Frame(frame_main)
+folder_frame.pack(fill="x")
+
+output_folder_entry = ttk.Entry(folder_frame, width=45)
+output_folder_entry.pack(side="left", padx=5)
+
+def browse_folder():
+    folder_selected = filedialog.askdirectory()
+    if folder_selected:
+        output_folder_entry.delete(0, "end")
+        output_folder_entry.insert(0, folder_selected)
+
+ttk.Button(folder_frame, text="Browse", bootstyle=SECONDARY, command=browse_folder).pack(side="left")
+
+# ======================== TÙY CHỌN CHẤT LƯỢNG ẢNH ========================
+ttk.Label(frame_main, text="🔍 Image Quality Filter:", font=("Segoe UI", 10, "bold")).pack(anchor="w", pady=(12,0))
+
+quality_all_var = ttk.IntVar(value=1)
+quality_hd_var = ttk.IntVar()
+quality_fullhd_var = ttk.IntVar()
+
+ttk.Checkbutton(frame_main, text="All Sizes", variable=quality_all_var).pack(anchor="w", padx=20)
+ttk.Checkbutton(frame_main, text="HD ≥ 1280px", variable=quality_hd_var).pack(anchor="w", padx=20)
+ttk.Checkbutton(frame_main, text="Full HD ≥ 1920px", variable=quality_fullhd_var).pack(anchor="w", padx=20)
+
+# ======================== NÚT BẮT ĐẦU ========================
+def start_download():
+    keyword = keyword_entry.get().strip()
+    video_link = video_entry.get().strip()
+    folder = output_folder_entry.get().strip()
+    num_images = num_images_spinbox.get()
+    duration = segment_duration_spinbox.get()
+    
+    if not folder:
+        result_label.config(text="⚠️ Please select a save folder first!")
+        return
+    
+    result_label.config(
+        text=f"✅ Ready!\n\nKeyword: {keyword}\nVideo: {video_link}\nImages: {num_images}\nSplit every {duration}s\nSave to: {folder}"
+    )
+
+start_button = ttk.Button(
+    root,
+    text="🚀 START DOWNLOAD",
+    bootstyle=SUCCESS + OUTLINE,
+    command=start_download
+)
+start_button.pack(pady=12, ipadx=10, ipady=5)
+
+# ======================== THANH TIẾN TRÌNH ========================
+progress_var = ttk.DoubleVar()
+progress = ttk.Progressbar(root, variable=progress_var, maximum=100, bootstyle=INFO)
+progress.pack(pady=8, fill="x", padx=20)
+
+# ======================== KẾT QUẢ ========================
+result_label = ttk.Label(root, text="", wraplength=550, justify="center", font=("Segoe UI", 10))
+result_label.pack(pady=8)
+
+ttk.Label(
+    root,
+    text="📝 Supports TikTok, Facebook, Twitter, etc.\n(YouTube not supported)",
+    font=("Arial", 9),
+    foreground="#c0c0c0"
+).pack(pady=5)
+
+# ======================== CHẠY APP ========================
 root.mainloop()
